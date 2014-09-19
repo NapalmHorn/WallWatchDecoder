@@ -14,12 +14,25 @@ class log_report(object):
 
     def add(self, entry_line):
         #if we have resricted scope, is it in that restriction
-        if not self.data_scope or \
-                entry_line.get(self.sortkey) in self.data_scope:
+        if self.__filter(entry_line):
             if entry_line.get(self.sortkey) in self.domains.keys():
+                # if we already have found one like this increase the count
                 self.domains[entry_line.get(self.sortkey)] += 1
             else:
+                # if we have not found one like this, start a new count at 1
                 self.domains[entry_line.get(self.sortkey)] = 1
+
+
+    def __filter(self, entry_line):
+        if not self.data_scope:
+            return True
+        else:
+            for rule in self.data_scope:
+                if entry_line.get(rule[0]) != rule[1]:
+                    # the data point does not met this rule
+                    return False
+            return True  # if we got here th
+
 
     def setSortKey(self, key):
         """ Sets the key to which we sort the data"""
@@ -31,22 +44,25 @@ class log_report(object):
                 print(k,)
 
     def setScope(self, values):
-        """ only look at data points where key is in the values list"""
+        """ only look at data points where key is in the values list
+        should be a list of tuples of the form (key, value)"""
         if not isinstance(values, list):
             values = [str(values)]
         self.data_scope = values
 
     def report(self, max_report_size=10):
-        def lastest(a):return a[-1]
+        def lastest(a): return a[-1]
         top_domains = []
         for a in self.domains.keys():
             top_domains.append((a, self.domains[a]))
 
+        #Sort the list for the report
         top_domains = sorted(top_domains, key=lastest, reverse=True)
 
+        # print out the largest 10 or so entries
         for n in range(min(max_report_size, len(self.domains))):
             a, b = top_domains.pop(0)
-            print('Rank:' + str(n + 1)  + ' Addr: ' + str(a) +' hits:' +
+            print('Rank:' + str(n + 1)  + ' Addr: ' + str(a) + ' hits:' +
                 str(b))
 
 
@@ -95,6 +111,10 @@ def main():
     log = log_report()
 
     #configure log here
+    values = []
+    values.append(('local_ip', '10.19.19.108'))
+    values.append(('remote_port', '443'))
+    log.setScope(values)
 
     for line in lines:
         entry_line = entry(line)
