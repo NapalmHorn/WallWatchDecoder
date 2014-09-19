@@ -22,7 +22,6 @@ class log_report(object):
                 # if we have not found one like this, start a new count at 1
                 self.domains[entry_line.get(self.sortkey)] = 1
 
-
     def __filter(self, entry_line):
         if not self.data_scope:
             return True
@@ -32,7 +31,6 @@ class log_report(object):
                     # the data point does not met this rule
                     return False
             return True  # if we got here th
-
 
     def setSortKey(self, key):
         """ Sets the key to which we sort the data"""
@@ -51,7 +49,11 @@ class log_report(object):
         self.data_scope = values
 
     def report(self, max_report_size=10):
-        def lastest(a): return a[-1]
+        """ Prints a report of at most the top 10 (or report size) domains
+        in terms of hits, that met the filter.
+        """
+        def lastest(a):
+            return a[-1]
         top_domains = []
         for a in self.domains.keys():
             top_domains.append((a, self.domains[a]))
@@ -62,8 +64,8 @@ class log_report(object):
         # print out the largest 10 or so entries
         for n in range(min(max_report_size, len(self.domains))):
             a, b = top_domains.pop(0)
-            print('Rank:' + str(n + 1)  + ' Addr: ' + str(a) + ' hits:' +
-                str(b))
+            print(('Rank:' + str(n + 1) + ' Addr: ' + str(a) + ' hits:' +
+                str(b)))
 
 
 class entry(object):
@@ -85,8 +87,7 @@ class entry(object):
         self.line_dict['local_ip'] = line_data.pop(0)
         self.line_dict['local_port'] = line_data.pop(0)
 
-
-    def get(self,item):
+    def get(self, item):
         """ Returns data for a key """
         if not item in self.line_dict.keys():
             print("No such data in entry.  Good keys are:")
@@ -95,9 +96,6 @@ class entry(object):
             return None
         else:
             return self.line_dict[item]
-
-
-
 
 
 def main():
@@ -110,7 +108,7 @@ def main():
     f.close()
     log = log_report()
 
-    #configure log here
+    #configure log here, 2 examples included
     values = []
     values.append(('local_ip', '10.19.19.108'))
     values.append(('remote_port', '443'))
