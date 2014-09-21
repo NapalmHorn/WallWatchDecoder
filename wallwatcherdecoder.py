@@ -1,4 +1,4 @@
-#  wall_watcher_dd_wrt_log_reader.py
+#  wallwatcherdecoder.py
 
 import sys
 
@@ -23,6 +23,8 @@ class log_report(object):
                 self.domains[entry_line.get(self.sortkey)] = 1
 
     def __filter(self, entry_line):
+        """__filter is not intended to be called directly this filters entries
+        as they are added based on values requirements"""
         if not self.data_scope:
             return True
         else:
@@ -64,8 +66,25 @@ class log_report(object):
         # print out the largest 10 or so entries
         for n in range(min(max_report_size, len(self.domains))):
             a, b = top_domains.pop(0)
-            print(('Rank:' + str(n + 1) + ' Addr: ' + str(a) + ' hits:' +
-                str(b)))
+            print(('Rank:' + str(n + 1) + ', "' + self.sortkey + '" :' +
+             str(a) + ', hits:' + str(b)))
+
+    def write_csv(self, outfile):
+        """TODO write a simple data dump to a csv file"""
+        def lastest(a):
+            return a[-1]
+        top_domains = []
+        for a in self.domains.keys():
+            top_domains.append((a, self.domains[a]))
+
+        #Sort the list for the report
+        top_domains = sorted(top_domains, key=lastest, reverse=True)
+        f = open(outfile, 'w')
+        f.write(self.sortkey + ', ' + 'hits\n')
+        # print out the largest 10 or so entries
+        for n in range(len(self.domains)):
+            a, b = top_domains.pop(0)
+            f.write('\n' + a + ', ' + str(b))
 
 
 class entry(object):
@@ -98,27 +117,85 @@ class entry(object):
             return self.line_dict[item]
 
 
+def print_values(values):
+    """Prints out the rules for the filter"""
+    for rule in values:
+        print("\"{0}\" must be \"{1}\"".format(rule[0], rule[1]))
+
+
+def getArgv():
+    infiles = []
+    outfile = ''
+    args = sys.argv
+    current = args.pop(0)  # the first one in interpreter or script name
+    # process each options
+    while args:
+        current = args.pop(0)
+        if 'wallwatcherdecoder.py' in current:
+            None
+        elif current == '--outfile':
+            outfile = args.pop(0)
+        elif current == '--infiles':
+            filename = args.pop(0)
+            while filename[:2] != '--' and args:
+
+                infiles.append(filename)
+                filename = args.pop(0)
+            if filename[:2] == '--':
+                args = [filename] + args  # readd the option that was popped
+        else:
+            print("Useage:python wallwatcher.py infile ")
+            print("\nOR\n")
+            print('Useage:python wallwatcher.py --infiles infile1 infile2 ' +
+                       "[...] [--outfile outfile.csv]")
+            print("\nOR\n")
+            print("--help")
+            sys.exit(0)
+
+    return infiles, outfile
+
+
 def main():
     # figure out which files to read
     # load files data smartly into a dictionary
 
-    filename = sys.argv[1]
-    f = open(filename, 'r')
-    lines = f.readlines()
-    f.close()
+    if len(sys.argv) == 2:
+        filename = sys.argv[1]
+        f = open(filename, 'r')
+        lines = f.readlines()
+        f.close()
+    elif len(sys.argv) > 2:
+        infiles, outfile = getArgv()
+        lines = []
+        for filename in infiles:
+            f = open(filename, 'r')
+            lines += f.readlines()
+            f.close()
+    else:
+        print("Useage:python wallwatcher.py infile ")
+        print("\nOR\n")
+        print('Useage:python wallwatcher.py --infiles infile1 infile2 [...]' +
+        "[--outfile outfile.csv]")
+        print("\nOR\n")
+        print("--help")
+        sys.exit(0)
     log = log_report()
 
     #configure log here, 2 examples included
     values = []
-    values.append(('local_ip', '10.19.19.108'))
-    values.append(('remote_port', '443'))
+    #values.append(('local_ip', '10.19.19.109'))
+    values.append(('remote_port', '80'))
     log.setScope(values)
+
+    log.setSortKey('local_ip')
 
     for line in lines:
         entry_line = entry(line)
         log.add(entry_line)
-
+    print_values(values)
     log.report()
+    if outfile:
+        log.write_csv(outfile)
 
 
 if __name__ == '__main__':
