@@ -42,7 +42,7 @@ def main():
     # choose the sortkey
     change_sort_key_btn = button.Button(win, graphics.Point(2.5, 4),
         5, 1, "Sort by ...")
-    #change_sort_key_btn.activate()
+    change_sort_key_btn.activate()
 
     # quit button
     quit_btn = button.Button(win, graphics.Point(7.5, 4), 5, 1, "quit")
@@ -84,7 +84,9 @@ def main():
         elif set_csv_out_btn.clicked(pt):
             outfile = set_csv_out()
         elif change_sort_key_btn.clicked(pt):
-            change_sort_key()
+            new_key = change_sort_key()
+            if new_key:
+                log.setSortKey(new_key)
         pt = win.getMouse()
 
 
@@ -143,6 +145,33 @@ def set_csv_out():
 
 
 def change_sort_key():
+    win_sort = graphics.GraphWin("Filter on return:", 150, 400)
+    win_sort.setCoords(0.0, 0.0, 1.0, 12.0)
+    good_keys = ['date', 'time', 'code', 'protocol', 'remote_ip',
+            'remote_domain', 'remote_port', 'local_ip', 'local_port']
+    button_count = 0
+    button_list = []
+
+    #create a collomn of buttons
+    for field in good_keys:
+        button_list.append(button.Button(win_sort, graphics.Point(.5, 1 +
+            button_count), 1, 1, field))
+        button_count += 1
+        button_list[-1].activate()
+
+    quit_sort_btn = button.Button(win_sort, graphics.Point(.5, 1 +
+        button_count), 1, 1, 'Quit')
+    quit_sort_btn.activate()
+
+    #get a click
+    pt = win_sort.getMouse()
+    while not quit_sort_btn.clicked(pt):
+        for btn in button_list:
+            if btn.clicked(pt):
+                win_sort.close()
+                return btn.getLabel()
+
+    win_sort.close()
     return None
 
 if __name__ == '__main__':
