@@ -187,7 +187,7 @@ def main():
     values.append(('remote_port', '80'))
     log.setScope(values)
 
-    log.setSortKey('local_ip')
+    log.setSortKey('remote_ip')
 
     for line in lines:
         entry_line = entry(line)
