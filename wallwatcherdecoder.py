@@ -54,36 +54,33 @@ class log_report(object):
         """ Prints a report of at most the top 10 (or report size) domains
         in terms of hits, that met the filter.
         """
-        def lastest(a):
-            return a[-1]
+
         top_domains = []
         for a in self.domains.keys():
-            top_domains.append((a, self.domains[a]))
+            top_domains.append((self.domains[a], a))
 
         #Sort the list for the report
-        top_domains = sorted(top_domains, key=lastest, reverse=True)
+        top_domains = sorted(top_domains, reverse=True)
 
         # print out the largest 10 or so entries
         for n in range(min(max_report_size, len(self.domains))):
-            a, b = top_domains.pop(0)
+            b, a = top_domains.pop(0)
             print(('Rank:' + str(n + 1) + ', "' + self.sortkey + '" :' +
              str(a) + ', hits:' + str(b)))
 
     def write_csv(self, outfile):
-        """TODO write a simple data dump to a csv file"""
-        def lastest(a):
-            return a[-1]
+        """a simple data dump to a csv file"""
         top_domains = []
         for a in self.domains.keys():
-            top_domains.append((a, self.domains[a]))
+            top_domains.append((self.domains[a], a))
 
         #Sort the list for the report
-        top_domains = sorted(top_domains, key=lastest, reverse=True)
+        top_domains = sorted(top_domains, reverse=True)
         f = open(outfile, 'w')
         f.write(self.sortkey + ', ' + 'hits\n')
         # print out the largest 10 or so entries
         for n in range(len(self.domains)):
-            a, b = top_domains.pop(0)
+            b, a = top_domains.pop(0)
             f.write('\n' + a + ', ' + str(b))
 
 
@@ -158,7 +155,7 @@ def getArgv():
 def main():
     # figure out which files to read
     # load files data smartly into a dictionary
-
+    outfile = ''
     if len(sys.argv) == 2:
         filename = sys.argv[1]
         f = open(filename, 'r')
@@ -184,7 +181,7 @@ def main():
     #configure log here, 2 examples included
     values = []
     #values.append(('local_ip', '10.19.19.109'))
-    values.append(('remote_port', '80'))
+    #values.append(('remote_port', '80'))
     log.setScope(values)
 
     log.setSortKey('remote_ip')
