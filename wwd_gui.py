@@ -2,7 +2,7 @@
 """a gui interface for configuring the wall watcher decoder program I wrote
 This will allow the user to chose rules that require certain values for
 keys in the log files."""
-        #TODO far future:
+        # TODO far future:
         # add chart functionality
         # create a chart with pg chart
         # set chart options
@@ -13,9 +13,11 @@ from wallwatcherdecoder import log_report, entry
 import button
 import graphics  # http://mcsp.wartburg.edu/zelle/python/graphics.py
 import tkinter.filedialog
+import webbrowser
 
 
 def main():
+
     # draw main window
     win = graphics.GraphWin("Decode and filter wallwatcher logs", 440, 200)
     win.setCoords(0.0, 0.0, 10.0, 10.0)
@@ -24,6 +26,12 @@ def main():
     select_logs_btn = button.Button(win, graphics.Point(7.5, 8), 5, 1,
         "Choose Log file[s] to decode")
     select_logs_btn.activate()
+
+    # do we want to open an html chart?
+    select_graph_btn = button.Button(win, graphics.Point(5, 9), 5, 1,
+        "Open HTML graph")
+    select_graph_btn.activate()
+    html = False
 
     # set the output file for csv file
     set_csv_out_btn = button.Button(win, graphics.Point(2.5, 8), 5, 1,
@@ -73,9 +81,12 @@ def main():
                     entry_line = entry(line)
                     log.add(entry_line)
 
-            # sort and write the CSV file
-            log.write_csv(outfile)
-            decode_now_btn.deactivate()
+            if html:
+                log.write_html(outfile)
+            else:
+                # sort and write the CSV file
+                log.write_csv(outfile)
+                decode_now_btn.deactivate()
         elif select_filters_btn.clicked(pt):
             values = select_filters()
             print(str(values))
@@ -87,6 +98,9 @@ def main():
             new_key = change_sort_key()
             if new_key:
                 log.setSortKey(new_key)
+        elif select_graph_btn.clicked(pt):
+            html = True
+            select_graph_btn.deactivate()
         pt = win.getMouse()
 
 
@@ -141,7 +155,7 @@ def select_filters():
 
 def set_csv_out():
     return tkinter.filedialog.asksaveasfilename(filetypes=[
-        ('csv', '*.csv'), ('allfiles', '*')])
+        ('csv', '*.csv'), ('html', '*.html'), ('allfiles', '*')])
 
 
 def change_sort_key():

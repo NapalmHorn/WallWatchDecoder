@@ -1,6 +1,7 @@
 #  wallwatcherdecoder.py
 
 import sys
+import pygchart
 
 
 class log_report(object):
@@ -82,6 +83,22 @@ class log_report(object):
         for n in range(len(self.domains)):
             b, a = top_domains.pop(0)
             f.write('\n' + a + ', ' + str(b))
+
+    def write_html(self, outfile, maxline=10):
+        top_domains = []
+        for a in self.domains.keys():
+            top_domains.append((self.domains[a], a))
+
+        #Sort the list for the report
+        top_domains = sorted(top_domains, reverse=True)
+        # print out the largest 10 or so entries
+        tabular_data = {}
+        for n in range(min(len(self.domains), maxline)):
+            b, a = top_domains.pop(0)
+            tabular_data[a] = [str(b)]
+        f = open(outfile, 'w')
+        f.write(pygchart.pie_chart(tabular_data).create_html())
+        f.close()
 
 
 class entry(object):
@@ -192,7 +209,7 @@ def main():
     print_values(values)
     log.report()
     if outfile:
-        log.write_csv(outfile)
+        log.write_html(outfile)
 
 
 if __name__ == '__main__':
